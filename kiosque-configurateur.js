@@ -133,8 +133,13 @@ async function getGLTFLoaderCtor() {
   if (window.THREELoaders?.GLTFLoader) {
     return window.THREELoaders.GLTFLoader;
   }
-  const mod = await import('https://unpkg.com/three@0.153.0/examples/jsm/loaders/GLTFLoader.js');
-  return mod.GLTFLoader;
+  
+  // Fallback to global THREE if available
+  if (window.THREE?.GLTFLoader) {
+    return window.THREE.GLTFLoader;
+  }
+  
+  throw new Error('GLTFLoader not found. Please include THREE.js and GLTFLoader scripts before this script.');
 }
 
 // Node mapping for model parts visibility
@@ -516,14 +521,13 @@ class ModelLoader {
       GLTFLoaderCtor = window.THREELoaders.GLTFLoader;
       DRACOLoaderCtor = window.THREELoaders.DRACOLoader;
     } 
-    // Fallback to dynamic import
+    // Fallback to global THREE
+    else if (window.THREE?.GLTFLoader && window.THREE?.DRACOLoader) {
+      GLTFLoaderCtor = window.THREE.GLTFLoader;
+      DRACOLoaderCtor = window.THREE.DRACOLoader;
+    }
     else {
-      const [gltfMod, dracoMod] = await Promise.all([
-        import('https://unpkg.com/three@0.153.0/examples/jsm/loaders/GLTFLoader.js'),
-        import('https://unpkg.com/three@0.153.0/examples/jsm/loaders/DRACOLoader.js')
-      ]);
-      GLTFLoaderCtor = gltfMod.GLTFLoader;
-      DRACOLoaderCtor = dracoMod.DRACOLoader;
+      throw new Error('GLTFLoader and DRACOLoader not found. Please include THREE.js loader scripts before this script.');
     }
 
     // Setup DRACOLoader
@@ -1694,14 +1698,13 @@ class CasierManager {
       GLTFLoaderCtor = window.THREELoaders.GLTFLoader;
       DRACOLoaderCtor = window.THREELoaders.DRACOLoader;
     } 
-    // Fallback to dynamic import
+    // Fallback to global THREE
+    else if (window.THREE?.GLTFLoader && window.THREE?.DRACOLoader) {
+      GLTFLoaderCtor = window.THREE.GLTFLoader;
+      DRACOLoaderCtor = window.THREE.DRACOLoader;
+    }
     else {
-      const [gltfMod, dracoMod] = await Promise.all([
-        import('https://unpkg.com/three@0.153.0/examples/jsm/loaders/GLTFLoader.js'),
-        import('https://unpkg.com/three@0.153.0/examples/jsm/loaders/DRACOLoader.js')
-      ]);
-      GLTFLoaderCtor = gltfMod.GLTFLoader;
-      DRACOLoaderCtor = dracoMod.DRACOLoader;
+      throw new Error('GLTFLoader and DRACOLoader not found. Please include THREE.js loader scripts before this script.');
     }
 
     // Setup DRACOLoader
