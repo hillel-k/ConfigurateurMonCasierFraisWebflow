@@ -129,14 +129,15 @@ const CONFIG = {
 };
 
 // Helper function to get GLTFLoader constructor safely
-async function getGLTFLoaderCtor() {
-  if (window.THREELoaders?.GLTFLoader) {
-    return window.THREELoaders.GLTFLoader;
-  }
-  
-  // Fallback to global THREE if available
+function getGLTFLoaderCtor() {
+  // Check for global THREE.GLTFLoader (from CDN scripts)
   if (window.THREE?.GLTFLoader) {
     return window.THREE.GLTFLoader;
+  }
+  
+  // Check for THREELoaders namespace
+  if (window.THREELoaders?.GLTFLoader) {
+    return window.THREELoaders.GLTFLoader;
   }
   
   throw new Error('GLTFLoader not found. Please include THREE.js and GLTFLoader scripts before this script.');
@@ -510,21 +511,21 @@ class ModelLoader {
     this.loader = null;
   }
   
-  async getLoader() {
+  getLoader() {
     if (this.loader) return this.loader;
 
-    // Load GLTFLoader and DRACOLoader if not present
+    // Load GLTFLoader and DRACOLoader from global THREE object
     let GLTFLoaderCtor, DRACOLoaderCtor;
     
-    // First check if loaders are available in window.THREELoaders
-    if (window.THREELoaders?.GLTFLoader && window.THREELoaders?.DRACOLoader) {
-      GLTFLoaderCtor = window.THREELoaders.GLTFLoader;
-      DRACOLoaderCtor = window.THREELoaders.DRACOLoader;
-    } 
-    // Fallback to global THREE
-    else if (window.THREE?.GLTFLoader && window.THREE?.DRACOLoader) {
+    // Check for global THREE loaders (from CDN scripts)
+    if (window.THREE?.GLTFLoader && window.THREE?.DRACOLoader) {
       GLTFLoaderCtor = window.THREE.GLTFLoader;
       DRACOLoaderCtor = window.THREE.DRACOLoader;
+    }
+    // Fallback to THREELoaders namespace
+    else if (window.THREELoaders?.GLTFLoader && window.THREELoaders?.DRACOLoader) {
+      GLTFLoaderCtor = window.THREELoaders.GLTFLoader;
+      DRACOLoaderCtor = window.THREELoaders.DRACOLoader;
     }
     else {
       throw new Error('GLTFLoader and DRACOLoader not found. Please include THREE.js loader scripts before this script.');
@@ -549,7 +550,7 @@ class ModelLoader {
     }
     
     // Load model
-    const loader = await this.getLoader();
+    const loader = this.getLoader();
     
     return new Promise((resolve, reject) => {
       loader.load(
@@ -1686,22 +1687,22 @@ class CasierManager {
     this._borneDimensions = new Map();
   }
 
-  async getCasierLoader() {
+  getCasierLoader() {
     if (this._casierLoader) {
       return this._casierLoader;
     }
 
     let GLTFLoaderCtor, DRACOLoaderCtor;
     
-    // First check if loaders are available in window.THREELoaders
-    if (window.THREELoaders?.GLTFLoader && window.THREELoaders?.DRACOLoader) {
-      GLTFLoaderCtor = window.THREELoaders.GLTFLoader;
-      DRACOLoaderCtor = window.THREELoaders.DRACOLoader;
-    } 
-    // Fallback to global THREE
-    else if (window.THREE?.GLTFLoader && window.THREE?.DRACOLoader) {
+    // Check for global THREE loaders (from CDN scripts)
+    if (window.THREE?.GLTFLoader && window.THREE?.DRACOLoader) {
       GLTFLoaderCtor = window.THREE.GLTFLoader;
       DRACOLoaderCtor = window.THREE.DRACOLoader;
+    }
+    // Fallback to THREELoaders namespace
+    else if (window.THREELoaders?.GLTFLoader && window.THREELoaders?.DRACOLoader) {
+      GLTFLoaderCtor = window.THREELoaders.GLTFLoader;
+      DRACOLoaderCtor = window.THREELoaders.DRACOLoader;
     }
     else {
       throw new Error('GLTFLoader and DRACOLoader not found. Please include THREE.js loader scripts before this script.');
@@ -1722,7 +1723,7 @@ class CasierManager {
   async ensureCasierMasterModel() {
     if (this._casierMasterModel) return this._casierMasterModel;
 
-    const loader = await this.getCasierLoader();
+    const loader = this.getCasierLoader();
     await new Promise((resolve, reject) => {
       loader.load('/CasierMaster-DRACO.glb', (gltf) => {
         this._casierMasterModel = gltf.scene;
